@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <meta name="format-detection" content="telephone=no">
+    <title>Urban Korfball Tactics Board</title>
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #764ba2;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text: #333;
+            --bg: #f0f2f5;
+            --white: #fff;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-top: env(safe-area-inset-top, 0px);
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        html, body { 
+            height: 100%; 
+            overflow: hidden;
+            overscroll-behavior: none;
+            position: fixed;
+            width: 100%;
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: var(--bg); 
+            touch-action: manipulation;
+        }
+
+        .app { 
+            display: flex; 
+            flex-direction: column; 
+            height: 100%; 
+            height: 100dvh;
+            padding-top: var(--safe-top);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            min-height: 56px;
+        }
+        .header h1 { 
+            font-size: 17px; 
+            font-weight: 600;
+        }
+        .menu-btn {
+            min-width: 44px; 
+            min-height: 44px; 
+            border: none;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px; 
+            color: var(--white);
+            font-size: 22px; 
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .menu-btn:active { 
+            background: rgba(255,255,255,0.3);
+            transform: scale(0.95);
+        }
+
+        /* Canvas Area */
+        .canvas-container {
+            flex: 1; 
+            display: flex; 
+            align-items: center;
+            justify-content: center; 
+            padding: 8px;
+            overflow: hidden; 
+            position: relative;
+            background: var(--bg);
+        }
+        canvas { 
+            max-width: 100%; 
+            max-height: 100%; 
+            border-radius: 12px; 
+            touch-action: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        /* Floating Controls */
+        .float-controls {
+            position: absolute; 
+            top: 12px; 
+            right: 12px;
+            display: flex; 
+            gap: 8px; 
+            z-index: 50;
+        }
+        .float-btn {
+            min-width: 44px; 
+            min-height: 44px; 
+            border: none;
+            background: var(--white); 
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            font-size: 20px; 
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .float-btn:disabled { opacity: 0.4; }
+        .float-btn:active { transform: scale(0.92); }
+
+        /* Frame Bar */
+        .frame-bar {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--white);
+            border-radius: 14px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 50;
+        }
+        .frame-info {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            min-width: 50px;
+            text-align: center;
+        }
+        .frame-btn {
+            min-width: 40px;
+            min-height: 40px;
+            border: none;
+            background: var(--bg);
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .frame-btn:active { transform: scale(0.95); }
+        .frame-btn.success { background: var(--success); color: var(--white); }
+        .frame-btn.danger { background: var(--danger); color: var(--white); }
+        .frame-btn.warning { background: var(--warning); color: var(--white); }
+
+        /* Bottom Bar */
+        .bottom-bar {
+            background: var(--white);
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            padding: 14px 12px;
+            padding-bottom: calc(14px + var(--safe-bottom));
+            flex-shrink: 0;
+        }
+        .tool-row { 
+            display: flex; 
+            justify-content: center; 
+            gap: 10px; 
+        }
+        .tool-btn {
+            min-width: 64px;
+            min-height: 58px; 
+            border: none;
+            background: var(--bg); 
+            border-radius: 14px; 
+            cursor: pointer;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            justify-content: center; 
+            gap: 4px; 
+            color: var(--text);
+            transition: all 0.15s;
+        }
+        .tool-btn .icon { font-size: 24px; }
+        .tool-btn .label { font-size: 11px; font-weight: 500; }
+        .tool-btn.active { 
+            background: var(--primary); 
+            color: var(--white);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .tool-btn:active { transform: scale(0.95); }
+
+        .color-row {
+            display: flex; 
+            justify-content: center; 
+            gap: 14px;
+            margin-top: 14px; 
+            padding-top: 14px;
+            border-top: 1px solid rgba(0,0,0,0.08);
+        }
+        .color-btn {
+            min-width: 38px; 
+            min-height: 38px; 
+            border-radius: 50%;
+            border: 3px solid transparent; 
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .color-btn.active { 
+            border-color: var(--text); 
+            transform: scale(1.15);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .color-btn:active { transform: scale(0.9); }
+
+        /* Overlay & Side Panel */
+        .overlay {
+            position: fixed; 
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); 
+            z-index: 150;
+            opacity: 0; 
+            visibility: hidden; 
+            transition: all 0.3s;
+        }
+        .overlay.open { opacity: 1; visibility: visible; }
+
+        .side-panel {
+            position: fixed; 
+            top: 0; 
+            right: -300px;
+            width: 280px; 
+            max-width: 85vw; 
+            height: 100%;
+            background: var(--white); 
+            z-index: 200;
+            transition: right 0.3s ease-out; 
+            display: flex; 
+            flex-direction: column;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+        }
+        .side-panel.open { right: 0; }
+        
+        .panel-header {
+            padding: 16px; 
+            padding-top: calc(16px + var(--safe-top));
+            background: var(--primary); 
+            color: var(--white);
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+        }
+        .panel-header h2 { font-size: 18px; font-weight: 600; }
+        .close-btn {
+            min-width: 44px; 
+            min-height: 44px; 
+            border: none;
+            background: rgba(255,255,255,0.2); 
+            border-radius: 10px;
+            color: var(--white); 
+            font-size: 20px; 
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .close-btn:active { background: rgba(255,255,255,0.3); }
+        
+        .panel-content { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .panel-section { margin-bottom: 24px; }
+        .panel-section h3 { 
+            font-size: 12px; 
+            color: #888; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px; 
+        }
+        .panel-btn {
+            width: 100%; 
+            min-height: 50px;
+            padding: 14px 16px; 
+            border: none;
+            background: var(--bg); 
+            border-radius: 12px;
+            font-size: 15px; 
+            color: var(--text); 
+            cursor: pointer;
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            margin-bottom: 10px;
+        }
+        .panel-btn:active { background: #e4e6eb; transform: scale(0.98); }
+        .panel-btn.danger { background: #fee2e2; color: var(--danger); }
+        .panel-btn .icon { font-size: 18px; }
+
+        .slider-container { 
+            background: var(--bg); 
+            border-radius: 12px; 
+            padding: 14px; 
+        }
+        .slider-label { 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 14px; 
+            margin-bottom: 10px; 
+        }
+        .slider { 
+            width: 100%; 
+            height: 6px; 
+            -webkit-appearance: none; 
+            background: #ddd; 
+            border-radius: 3px; 
+        }
+        .slider::-webkit-slider-thumb { 
+            -webkit-appearance: none; 
+            width: 26px; 
+            height: 26px; 
+            background: var(--primary); 
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed; 
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); 
+            z-index: 300;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            padding: 20px; 
+            opacity: 0; 
+            visibility: hidden; 
+            transition: all 0.3s;
+        }
+        .modal.open { opacity: 1; visibility: visible; }
+        .modal-content {
+            background: var(--white); 
+            border-radius: 20px; 
+            padding: 24px;
+            width: 100%; 
+            max-width: 360px; 
+            max-height: 80vh; 
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .modal-header { 
+            font-size: 20px; 
+            font-weight: 600; 
+            margin-bottom: 20px; 
+        }
+        .modal-input {
+            width: 100%; 
+            padding: 14px 16px; 
+            border: 2px solid #e5e7eb;
+            border-radius: 12px; 
+            font-size: 16px; 
+            margin-bottom: 12px;
+        }
+        .modal-input:focus { 
+            outline: none; 
+            border-color: var(--primary); 
+        }
+        textarea.modal-input { 
+            min-height: 120px; 
+            font-family: monospace; 
+            font-size: 13px;
+            resize: none;
+        }
+        .modal-actions { 
+            display: flex; 
+            gap: 12px; 
+            margin-top: 20px; 
+        }
+        .modal-btn { 
+            flex: 1; 
+            min-height: 50px;
+            padding: 14px; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            cursor: pointer; 
+        }
+        .modal-btn.primary { background: var(--primary); color: var(--white); }
+        .modal-btn.secondary { background: var(--bg); color: var(--text); }
+        .modal-btn:active { transform: scale(0.98); }
+
+        /* Toast */
+        .toast {
+            position: fixed; 
+            bottom: 140px; 
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--text); 
+            color: var(--white);
+            padding: 12px 24px; 
+            border-radius: 12px; 
+            font-size: 15px;
+            font-weight: 500;
+            z-index: 400; 
+            opacity: 0; 
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .toast.show { 
+            transform: translateX(-50%) translateY(0); 
+            opacity: 1; 
+        }
+
+        /* Tablet & Desktop */
+        @media (min-width: 768px) {
+            .header h1 { font-size: 20px; }
+            .tool-btn { min-width: 80px; min-height: 66px; }
+            .tool-btn .icon { font-size: 28px; }
+            .tool-btn .label { font-size: 12px; }
+            .color-btn { min-width: 44px; min-height: 44px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <h1>🏙️ Urban Korfball Board</h1>
+            <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+        </header>
+
+        <div class="canvas-container">
+            <canvas id="board"></canvas>
+            <div class="float-controls">
+                <button class="float-btn" id="undoBtn" aria-label="Undo">↩</button>
+                <button class="float-btn" id="redoBtn" aria-label="Redo">↪</button>
+            </div>
+            <div class="frame-bar">
+                <button class="frame-btn" id="prevFrame" aria-label="Previous">◀</button>
+                <span class="frame-info"><span id="currentFrame">1</span>/<span id="totalFrames">1</span></span>
+                <button class="frame-btn" id="nextFrame" aria-label="Next">▶</button>
+                <button class="frame-btn success" id="addFrame" aria-label="Add">＋</button>
+                <button class="frame-btn danger" id="delFrame" aria-label="Delete">🗑</button>
+            </div>
+        </div>
+
+        <div class="bottom-bar">
+            <div class="tool-row">
+                <button class="tool-btn active" data-tool="select">
+                    <span class="icon">👆</span>
+                    <span class="label">Select</span>
+                </button>
+                <button class="tool-btn" data-tool="freehand">
+                    <span class="icon">✏️</span>
+                    <span class="label">Draw</span>
+                </button>
+                <button class="tool-btn" data-tool="eraser">
+                    <span class="icon">🧹</span>
+                    <span class="label">Erase</span>
+                </button>
+            </div>
+            <div class="color-row">
+                <button class="color-btn active" data-color="#000000" style="background:#000" aria-label="Black"></button>
+                <button class="color-btn" data-color="#ef4444" style="background:#ef4444" aria-label="Red"></button>
+                <button class="color-btn" data-color="#3b82f6" style="background:#3b82f6" aria-label="Blue"></button>
+                <button class="color-btn" data-color="#10b981" style="background:#10b981" aria-label="Green"></button>
+                <button class="color-btn" data-color="#ffffff" style="background:#fff;border:2px solid #ccc" aria-label="White"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Panel -->
+    <div class="overlay" id="overlay"></div>
+    <div class="side-panel" id="sidePanel">
+        <div class="panel-header">
+            <h2>Menu</h2>
+            <button class="close-btn" id="closePanel" aria-label="Close">✕</button>
+        </div>
+        <div class="panel-content">
+            <div class="panel-section">
+                <h3>Line Width</h3>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Width</span>
+                        <span id="lineWidthValue">3px</span>
+                    </div>
+                    <input type="range" class="slider" id="lineWidth" min="1" max="8" value="3">
+                </div>
+            </div>
+            <div class="panel-section">
+                <h3>Playback</h3>
+                <button class="panel-btn" id="playBtn">
+                    <span class="icon">▶️</span> Play Animation
+                </button>
+                <div class="slider-container" style="margin-top:10px">
+                    <div class="slider-label">
+                        <span>Speed</span>
+                        <span id="speedValue">1.0x</span>
+                    </div>
+                    <input type="range" class="slider" id="playbackSpeed" min="100" max="3000" value="1000" step="100">
+                </div>
+            </div>
+            <div class="panel-section">
+                <h3>File</h3>
+                <button class="panel-btn" id="saveBtn">
+                    <span class="icon">💾</span> Save
+                </button>
+                <button class="panel-btn" id="loadBtn">
+                    <span class="icon">📂</span> Load
+                </button>
+                <button class="panel-btn" id="exportBtn">
+                    <span class="icon">📷</span> Export PNG
+                </button>
+            </div>
+            <div class="panel-section">
+                <h3>Actions</h3>
+                <button class="panel-btn" id="clearBtn">
+                    <span class="icon">🗑️</span> Clear Drawings
+                </button>
+                <button class="panel-btn danger" id="resetBtn">
+                    <span class="icon">🔄</span> Reset All
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="saveModal">
+        <div class="modal-content">
+            <div class="modal-header">💾 Save Play</div>
+            <input type="text" class="modal-input" id="playName" placeholder="Play name">
+            <textarea class="modal-input" id="saveData" readonly></textarea>
+            <div class="modal-actions">
+                <button class="modal-btn secondary" id="closeSaveModal">Cancel</button>
+                <button class="modal-btn primary" id="copyBtn">Copy</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="loadModal">
+        <div class="modal-content">
+            <div class="modal-header">📂 Load Play</div>
+            <textarea class="modal-input" id="loadData" placeholder="Paste saved data here"></textarea>
+            <div class="modal-actions">
+                <button class="modal-btn secondary" id="closeLoadModal">Cancel</button>
+                <button class="modal-btn primary" id="loadDataBtn">Load</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ========== Court Configuration (Circular Court) ==========
+        const OUTER_RADIUS = 9;      // Outer circle 9m
+        const MIDDLE_RADIUS = 6;     // Middle circle 6m
+        const INNER_RADIUS = 2.5;    // Inner circle 2.5m
+        const BORDER_WIDTH = 2;
+        const PLAYER_RADIUS = 0.6;
+        const COURT_SIZE = OUTER_RADIUS * 2 + BORDER_WIDTH * 2;
+        const CENTER_X = BORDER_WIDTH + OUTER_RADIUS;
+        const CENTER_Y = BORDER_WIDTH + OUTER_RADIUS;
+
+        const canvas = document.getElementById('board');
+        const ctx = canvas.getContext('2d');
+        let scale;
+        let dpr = window.devicePixelRatio || 1;
+
+        let currentTool = 'select';
+        let currentColor = '#000000';
+        let currentLineWidth = 3;
+        let frames = [];
+        let currentFrameIndex = 0;
+        let selectedObject = null;
+        let isDragging = false;
+        let offset = { x: 0, y: 0 };
+        let tempDrawing = null;
+        let history = [];
+        let historyIndex = -1;
+        let isPlaying = false;
+        let playbackInterval = null;
+        let playbackSpeed = 1000;
+
+        // ========== Create Default Frame ==========
+        function createNewFrame() {
+            const cx = CENTER_X;
+            const cy = CENTER_Y;
+            const subRadius = OUTER_RADIUS + 1.2; // Substitutes outside court
+
+            return {
+                players: [
+                    // Team A (Red) - On Court (2 male, 2 female)
+                    {position: [cx - 4, cy - 3], color: '#ef4444', number: '1', gender: 'boy', team: 'A'},
+                    {position: [cx + 2, cy - 5], color: '#ef4444', number: '2', gender: 'boy', team: 'A'},
+                    {position: [cx - 5, cy + 2], color: '#ef4444', number: '3', gender: 'girl', team: 'A'},
+                    {position: [cx + 1, cy + 4], color: '#ef4444', number: '4', gender: 'girl', team: 'A'},
+                    // Team A - Substitutes (1 male, 1 female) - outside court
+                    {position: [cx - subRadius * 0.7, cy - subRadius * 0.7], color: '#ef4444', number: '5', gender: 'boy', team: 'A'},
+                    {position: [cx - subRadius * 0.9, cy - subRadius * 0.3], color: '#ef4444', number: '6', gender: 'girl', team: 'A'},
+                    
+                    // Team B (Blue) - On Court (2 male, 2 female)
+                    {position: [cx + 4, cy + 3], color: '#3b82f6', number: '7', gender: 'boy', team: 'B'},
+                    {position: [cx - 2, cy + 5], color: '#3b82f6', number: '8', gender: 'boy', team: 'B'},
+                    {position: [cx + 5, cy - 2], color: '#3b82f6', number: '9', gender: 'girl', team: 'B'},
+                    {position: [cx - 1, cy - 4], color: '#3b82f6', number: '10', gender: 'girl', team: 'B'},
+                    // Team B - Substitutes (1 male, 1 female) - outside court
+                    {position: [cx + subRadius * 0.7, cy + subRadius * 0.7], color: '#3b82f6', number: '11', gender: 'boy', team: 'B'},
+                    {position: [cx + subRadius * 0.9, cy + subRadius * 0.3], color: '#3b82f6', number: '12', gender: 'girl', team: 'B'},
+                ],
+                ball: { position: [cx - 3, cy - 3], color: '#FFEB3B', radius: 0.4 },
+                drawings: []
+            };
+        }
+
+        frames.push(createNewFrame());
+
+        // ========== Resize Canvas (High DPI Support) ==========
+        function resizeCanvas() {
+            const totalSize = COURT_SIZE + 2;
+            const aspectRatio = 1; // Square for circular court
+            const container = canvas.parentElement;
+            const maxWidth = container.clientWidth - 16;
+            const maxHeight = container.clientHeight - 80;
+
+            let displaySize = Math.min(maxWidth, maxHeight);
+
+            dpr = window.devicePixelRatio || 1;
+            canvas.width = displaySize * dpr;
+            canvas.height = displaySize * dpr;
+            canvas.style.width = displaySize + 'px';
+            canvas.style.height = displaySize + 'px';
+            ctx.scale(dpr, dpr);
+
+            scale = displaySize / totalSize;
+            draw();
+        }
+
+        // ========== Draw Court ==========
+        function drawCourt() {
+            const cx = CENTER_X * scale;
+            const cy = CENTER_Y * scale;
+            const outerR = OUTER_RADIUS * scale;
+            const middleR = MIDDLE_RADIUS * scale;
+            const innerR = INNER_RADIUS * scale;
+
+            // Background - Urban/Street style
+            const bgGradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, outerR * 1.5);
+            bgGradient.addColorStop(0, '#4a5568');
+            bgGradient.addColorStop(1, '#2d3748');
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+
+            // Shadow for court
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 5;
+
+            // Outer circle (9m) - Main court
+            const courtGradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, outerR);
+            courtGradient.addColorStop(0, '#718096');
+            courtGradient.addColorStop(0.7, '#5a6778');
+            courtGradient.addColorStop(1, '#4a5568');
+            ctx.fillStyle = courtGradient;
+            ctx.beginPath();
+            ctx.arc(cx, cy, outerR, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+
+            // Outer circle boundary
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(cx, cy, outerR, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, outerR, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            // Middle circle (6m)
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([10, 6]);
+            ctx.beginPath();
+            ctx.arc(cx, cy, middleR, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Inner circle (2.5m) - Penalty area
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(cx, cy, innerR, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            // Fill inner circle slightly
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.beginPath();
+            ctx.arc(cx, cy, innerR, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Korf in center
+            drawKorf(cx, cy);
+
+            // Zone labels
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.font = `bold ${0.8 * scale}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('2.5m', cx, cy + innerR + 0.6 * scale);
+            ctx.fillText('6m', cx, cy + middleR + 0.6 * scale);
+            ctx.fillText('9m', cx, cy + outerR - 0.6 * scale);
+        }
+
+        function drawKorf(x, y) {
+            // Korf post shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.arc(x + 2, y + 2, 0.5 * scale, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Korf
+            ctx.beginPath();
+            ctx.arc(x, y, 0.5 * scale, 0, 2 * Math.PI);
+            ctx.fillStyle = '#D4A017';
+            ctx.fill();
+            ctx.strokeStyle = '#8B6914';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Inner ring
+            ctx.beginPath();
+            ctx.arc(x, y, 0.25 * scale, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function drawPlayer(player) {
+            const x = player.position[0] * scale;
+            const y = player.position[1] * scale;
+            const size = PLAYER_RADIUS * scale;
+
+            // Shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            if (player.gender === 'boy') {
+                ctx.beginPath();
+                ctx.arc(x + 2, y + 2, size, 0, 2 * Math.PI);
+                ctx.fill();
+            } else {
+                ctx.fillRect(x - size + 2, y - size + 2, size * 2, size * 2);
+            }
+
+            // Player
+            ctx.fillStyle = player.color;
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+
+            if (player.gender === 'boy') {
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+            } else {
+                ctx.fillRect(x - size, y - size, size * 2, size * 2);
+                ctx.strokeRect(x - size, y - size, size * 2, size * 2);
+            }
+
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.9}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(player.number, x, y);
+        }
+
+        function drawBall() {
+            const frame = frames[currentFrameIndex];
+            const x = frame.ball.position[0] * scale;
+            const y = frame.ball.position[1] * scale;
+            const r = frame.ball.radius * scale;
+
+            // Shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.arc(x + 2, y + 2, r, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Ball
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, 2 * Math.PI);
+            ctx.fillStyle = frame.ball.color;
+            ctx.fill();
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function drawFreehand(points, color, lineWidth) {
+            if (points.length < 2) return;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length - 1; i++) {
+                const xc = (points[i].x + points[i + 1].x) / 2;
+                const yc = (points[i].y + points[i + 1].y) / 2;
+                ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+            }
+            ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+            ctx.stroke();
+        }
+
+        function drawDrawings() {
+            frames[currentFrameIndex].drawings.forEach(d => {
+                if (d.type === 'freehand') drawFreehand(d.points, d.color, d.lineWidth || 3);
+            });
+        }
+
+        function draw() {
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawCourt();
+            frames[currentFrameIndex].players.forEach(drawPlayer);
+            drawBall();
+            drawDrawings();
+            if (tempDrawing && tempDrawing.points) drawFreehand(tempDrawing.points, currentColor, currentLineWidth);
+            updateFrameDisplay();
+        }
+
+        function updateFrameDisplay() {
+            document.getElementById('currentFrame').textContent = currentFrameIndex + 1;
+            document.getElementById('totalFrames').textContent = frames.length;
+        }
+
+        // ========== Touch/Mouse Handling ==========
+        function getPos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = (canvas.width / dpr) / rect.width;
+            const scaleY = (canvas.height / dpr) / rect.height;
+            let clientX, clientY;
+            if (evt.touches && evt.touches.length > 0) {
+                clientX = evt.touches[0].clientX;
+                clientY = evt.touches[0].clientY;
+            } else {
+                clientX = evt.clientX;
+                clientY = evt.clientY;
+            }
+            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+        }
+
+        function isInPlayer(pos, player) {
+            const px = player.position[0] * scale;
+            const py = player.position[1] * scale;
+            const r = PLAYER_RADIUS * scale * 1.4;
+            if (player.gender === 'boy') return Math.sqrt((pos.x - px) ** 2 + (pos.y - py) ** 2) <= r;
+            return pos.x >= px - r && pos.x <= px + r && pos.y >= py - r && pos.y <= py + r;
+        }
+
+        function isInBall(pos) {
+            const frame = frames[currentFrameIndex];
+            const bx = frame.ball.position[0] * scale;
+            const by = frame.ball.position[1] * scale;
+            return Math.sqrt((pos.x - bx) ** 2 + (pos.y - by) ** 2) <= frame.ball.radius * scale * 2;
+        }
+
+        function handleStart(evt) {
+            if (isPlaying) return;
+            evt.preventDefault();
+            const pos = getPos(evt);
+            const frame = frames[currentFrameIndex];
+
+            if (currentTool === 'select') {
+                if (isInBall(pos)) {
+                    selectedObject = frame.ball;
+                    isDragging = true;
+                    offset.x = pos.x - frame.ball.position[0] * scale;
+                    offset.y = pos.y - frame.ball.position[1] * scale;
+                    return;
+                }
+                for (const player of frame.players) {
+                    if (isInPlayer(pos, player)) {
+                        selectedObject = player;
+                        isDragging = true;
+                        offset.x = pos.x - player.position[0] * scale;
+                        offset.y = pos.y - player.position[1] * scale;
+                        return;
+                    }
+                }
+            } else if (currentTool === 'freehand') {
+                tempDrawing = { points: [pos] };
+            } else if (currentTool === 'eraser') {
+                eraseAt(pos);
+            }
+        }
+
+        function handleMove(evt) {
+            if (isPlaying) return;
+            evt.preventDefault();
+            const pos = getPos(evt);
+
+            if (currentTool === 'select' && isDragging && selectedObject) {
+                selectedObject.position[0] = (pos.x - offset.x) / scale;
+                selectedObject.position[1] = (pos.y - offset.y) / scale;
+                draw();
+            } else if (currentTool === 'freehand' && tempDrawing) {
+                const last = tempDrawing.points[tempDrawing.points.length - 1];
+                if (Math.sqrt((pos.x - last.x) ** 2 + (pos.y - last.y) ** 2) > 2) {
+                    tempDrawing.points.push(pos);
+                    draw();
+                }
+            } else if (currentTool === 'eraser' && (evt.buttons === 1 || evt.touches)) {
+                eraseAt(pos);
+            }
+        }
+
+        function handleEnd(evt) {
+            if (isPlaying) return;
+            evt.preventDefault();
+            const frame = frames[currentFrameIndex];
+            if (currentTool === 'select' && isDragging) saveToHistory();
+            if (currentTool === 'freehand' && tempDrawing && tempDrawing.points.length > 1) {
+                frame.drawings.push({ type: 'freehand', points: tempDrawing.points, color: currentColor, lineWidth: currentLineWidth });
+                saveToHistory();
+            }
+            isDragging = false;
+            selectedObject = null;
+            tempDrawing = null;
+            draw();
+        }
+
+        function eraseAt(pos) {
+            const frame = frames[currentFrameIndex];
+            const r = 20;
+            const before = frame.drawings.length;
+            frame.drawings = frame.drawings.filter(d => !d.points.some(p => Math.sqrt((p.x - pos.x) ** 2 + (p.y - pos.y) ** 2) < r));
+            if (frame.drawings.length !== before) draw();
+        }
+
+        // Double tap to edit number
+        let lastTap = 0;
+        function handleDoubleTap(evt) {
+            if (isPlaying) return;
+            const now = Date.now();
+            if (now - lastTap < 300) {
+                const pos = getPos(evt);
+                for (const player of frames[currentFrameIndex].players) {
+                    if (isInPlayer(pos, player)) {
+                        const newNum = prompt('Enter player number:', player.number);
+                        if (newNum !== null && newNum.trim()) {
+                            player.number = newNum.trim();
+                            saveToHistory();
+                            draw();
+                        }
+                        return;
+                    }
+                }
+            }
+            lastTap = now;
+        }
+
+        // ========== History ==========
+        function saveToHistory() {
+            history = history.slice(0, historyIndex + 1);
+            history.push(JSON.parse(JSON.stringify(frames)));
+            historyIndex++;
+            if (history.length > 50) { history.shift(); historyIndex--; }
+            updateHistoryBtns();
+        }
+
+        function undo() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                frames = JSON.parse(JSON.stringify(history[historyIndex]));
+                draw();
+                updateHistoryBtns();
+            }
+        }
+
+        function redo() {
+            if (historyIndex < history.length - 1) {
+                historyIndex++;
+                frames = JSON.parse(JSON.stringify(history[historyIndex]));
+                draw();
+                updateHistoryBtns();
+            }
+        }
+
+        function updateHistoryBtns() {
+            document.getElementById('undoBtn').disabled = historyIndex <= 0;
+            document.getElementById('redoBtn').disabled = historyIndex >= history.length - 1;
+        }
+
+        // ========== Frame Controls ==========
+        function addFrame() {
+            if (isPlaying) return;
+            const newFrame = JSON.parse(JSON.stringify(frames[currentFrameIndex]));
+            frames.push(newFrame);
+            currentFrameIndex = frames.length - 1;
+            saveToHistory();
+            draw();
+            showToast('Frame added');
+        }
+
+        function deleteFrame() {
+            if (isPlaying || frames.length <= 1) return;
+            if (confirm('Delete this frame?')) {
+                frames.splice(currentFrameIndex, 1);
+                if (currentFrameIndex >= frames.length) currentFrameIndex = frames.length - 1;
+                saveToHistory();
+                draw();
+                showToast('Frame deleted');
+            }
+        }
+
+        function prevFrame() {
+            if (currentFrameIndex > 0) { currentFrameIndex--; draw(); }
+        }
+
+        function nextFrame() {
+            if (currentFrameIndex < frames.length - 1) { currentFrameIndex++; draw(); }
+        }
+
+        // ========== Playback ==========
+        function startPlayback() {
+            if (isPlaying || frames.length <= 1) return;
+            isPlaying = true;
+            togglePanel(false);
+            document.getElementById('playBtn').innerHTML = '<span class="icon">⏸️</span> Stop';
+            if (currentFrameIndex >= frames.length - 1) currentFrameIndex = 0;
+
+            playbackInterval = setInterval(() => {
+                currentFrameIndex++;
+                if (currentFrameIndex >= frames.length) currentFrameIndex = 0;
+                draw();
+            }, playbackSpeed);
+        }
+
+        function stopPlayback() {
+            isPlaying = false;
+            if (playbackInterval) { clearInterval(playbackInterval); playbackInterval = null; }
+            document.getElementById('playBtn').innerHTML = '<span class="icon">▶️</span> Play Animation';
+        }
+
+        // ========== UI Helpers ==========
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function togglePanel(open) {
+            document.getElementById('sidePanel').classList.toggle('open', open);
+            document.getElementById('overlay').classList.toggle('open', open);
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        // ========== Event Listeners ==========
+        canvas.addEventListener('touchstart', (e) => { handleDoubleTap(e); handleStart(e); }, { passive: false });
+        canvas.addEventListener('touchmove', handleMove, { passive: false });
+        canvas.addEventListener('touchend', handleEnd, { passive: false });
+        canvas.addEventListener('mousedown', (e) => { handleDoubleTap(e); handleStart(e); });
+        canvas.addEventListener('mousemove', handleMove);
+        canvas.addEventListener('mouseup', handleEnd);
+        canvas.addEventListener('mouseleave', handleEnd);
+        canvas.addEventListener('dblclick', (e) => {
+            if (isPlaying) return;
+            const pos = getPos(e);
+            for (const player of frames[currentFrameIndex].players) {
+                if (isInPlayer(pos, player)) {
+                    const newNum = prompt('Enter player number:', player.number);
+                    if (newNum !== null && newNum.trim()) { player.number = newNum.trim(); saveToHistory(); draw(); }
+                    return;
+                }
+            }
+        });
+
+        // Tool buttons
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTool = btn.dataset.tool;
+                canvas.style.cursor = currentTool === 'select' ? 'default' : currentTool === 'eraser' ? 'not-allowed' : 'crosshair';
+            });
+        });
+
+        // Color buttons
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentColor = btn.dataset.color;
+            });
+        });
+
+        // Menu & Panel
+        document.getElementById('menuBtn').addEventListener('click', () => togglePanel(true));
+        document.getElementById('closePanel').addEventListener('click', () => togglePanel(false));
+        document.getElementById('overlay').addEventListener('click', () => togglePanel(false));
+
+        // Sliders
+        document.getElementById('lineWidth').addEventListener('input', (e) => {
+            currentLineWidth = parseInt(e.target.value);
+            document.getElementById('lineWidthValue').textContent = currentLineWidth + 'px';
+        });
+        document.getElementById('playbackSpeed').addEventListener('input', (e) => {
+            playbackSpeed = parseInt(e.target.value);
+            document.getElementById('speedValue').textContent = (1000 / playbackSpeed).toFixed(1) + 'x';
+            if (isPlaying) { stopPlayback(); startPlayback(); }
+        });
+
+        // History & Frame buttons
+        document.getElementById('undoBtn').addEventListener('click', undo);
+        document.getElementById('redoBtn').addEventListener('click', redo);
+        document.getElementById('prevFrame').addEventListener('click', prevFrame);
+        document.getElementById('nextFrame').addEventListener('click', nextFrame);
+        document.getElementById('addFrame').addEventListener('click', addFrame);
+        document.getElementById('delFrame').addEventListener('click', deleteFrame);
+        document.getElementById('playBtn').addEventListener('click', () => { isPlaying ? stopPlayback() : startPlayback(); });
+
+        // Actions
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            if (isPlaying) return;
+            togglePanel(false);
+            if (confirm('Clear all drawings?')) { frames[currentFrameIndex].drawings = []; saveToHistory(); draw(); showToast('Cleared'); }
+        });
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (isPlaying) return;
+            togglePanel(false);
+            if (confirm('Reset everything?')) { stopPlayback(); frames = [createNewFrame()]; currentFrameIndex = 0; history = []; historyIndex = -1; draw(); showToast('Reset'); }
+        });
+
+        // Save/Load/Export
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            togglePanel(false);
+            document.getElementById('saveData').value = JSON.stringify(frames, null, 2);
+            openModal('saveModal');
+        });
+        document.getElementById('closeSaveModal').addEventListener('click', () => closeModal('saveModal'));
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            document.getElementById('saveData').select();
+            document.execCommand('copy');
+            showToast('Copied!');
+            closeModal('saveModal');
+        });
+        document.getElementById('loadBtn').addEventListener('click', () => { togglePanel(false); openModal('loadModal'); });
+        document.getElementById('closeLoadModal').addEventListener('click', () => closeModal('loadModal'));
+        document.getElementById('loadDataBtn').addEventListener('click', () => {
+            try {
+                stopPlayback();
+                frames = JSON.parse(document.getElementById('loadData').value);
+                currentFrameIndex = 0; history = []; historyIndex = -1; draw();
+                closeModal('loadModal'); document.getElementById('loadData').value = '';
+                showToast('Loaded!');
+            } catch (e) { showToast('Invalid data'); }
+        });
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            togglePanel(false);
+            const link = document.createElement('a');
+            link.download = `urban-korfball-frame${currentFrameIndex + 1}-${Date.now()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+            showToast('Exported!');
+        });
+
+        // Initialize
+        window.addEventListener('resize', resizeCanvas);
+        saveToHistory();
+        resizeCanvas();
+    </script>
+</body>
+</html>
