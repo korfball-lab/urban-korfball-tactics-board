@@ -95,6 +95,11 @@ The board features a street-style dark theme with:
 
 MIT License
 
+## 👤 Author
+
+**Hajime Shinohara**  
+📧 shinohara@korfball.jp
+
 ## 🔗 Links
 
 - [Japan Korfball Association](https://korfball.jp)
