@@ -2,6 +2,8 @@
 
 A mobile-friendly tactical board for urban korfball coaches and players, featuring a circular court design and frame-by-frame animation.
 
+[https://korfball-lab.github.io/urban-korfball-tactics-board/](https://korfball-lab.github.io/urban-korfball-tactics-board/)
+
 ## 🎯 Features
 
 - **Drag & Drop**: Move players and ball by dragging
