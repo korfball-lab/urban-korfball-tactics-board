@@ -2,6 +2,8 @@
 
 A mobile-friendly tactical board for urban korfball coaches and players, featuring a circular court design and frame-by-frame animation.
 
+## 🌐 Demo
+
 [https://korfball-lab.github.io/urban-korfball-tactics-board/](https://korfball-lab.github.io/urban-korfball-tactics-board/)
 
 ## 🎯 Features
@@ -10,7 +12,7 @@ A mobile-friendly tactical board for urban korfball coaches and players, featuri
 - **Freehand Drawing**: Draw plays, arrows, and annotations
 - **Frame Animation**: Create multi-frame play sequences
 - **Playback**: Auto-play animations with adjustable speed
-- **Color Options**: 5 colors (black, red, blue, green, white)
+- **Color Options**: 6 colors (white, red, blue, green, orange, black)
 - **Eraser**: Remove drawings easily
 - **Undo/Redo**: Up to 50 steps of history
 - **Save/Load**: Export and import plays as JSON
@@ -20,6 +22,8 @@ A mobile-friendly tactical board for urban korfball coaches and players, featuri
 ## 📱 Mobile Optimized
 
 - Touch-friendly interface
+- Simplified UI with minimal bottom bar
+- Frame controls toggle ON/OFF
 - Safe area support (iPhone notch, etc.)
 - High DPI display support
 - No pinch-zoom interference
@@ -35,21 +39,6 @@ Urban Korfball uses a unique circular court design:
 | Inner Circle | 2.5m | Penalty area |
 | Center | - | Korf position |
 
-```
-        ┌─────────────────┐
-       ╱                   ╲
-      │    ┌───────────┐    │
-     │    ╱             ╲    │
-     │   │   ┌───────┐   │   │  ← 9m (outer)
-     │   │   │ (2.5m)│   │   │
-     │   │   │  ●    │   │   │  ← Korf at center
-     │   │   └───────┘   │   │
-     │    ╲     6m     ╱    │
-      │    └───────────┘    │
-       ╲                   ╱
-        └─────────────────┘
-```
-
 ## 👥 Players
 
 - **12 players total** (6 per team)
@@ -62,11 +51,12 @@ Urban Korfball uses a unique circular court design:
 
 ## 🎬 Frame Animation
 
-1. Create your first position
-2. Tap **＋** to add a new frame
-3. Move players to next position
-4. Repeat for each step of the play
-5. Tap **▶️ Play Animation** in menu to watch
+1. Open Settings menu (☰)
+2. Turn ON "Show Frame Controls" toggle
+3. Tap **＋** to add a new frame
+4. Move players to next position
+5. Repeat for each step of the play
+6. Tap **▶️ Play Animation** to watch
 
 ### Frame Controls
 
@@ -80,18 +70,16 @@ Urban Korfball uses a unique circular court design:
 ## 🚀 Usage
 
 1. Open in browser (works offline after first load)
-2. Select tool: **Select** / **Draw** / **Erase**
-3. Use frame controls to create animations
-4. Tap **☰** for menu (playback, save, load, export)
-5. Double-tap player to change number
+2. Select tool: **MOVE** / **DRAW** / **ERASE**
+3. Tap **☰** for settings (colors, animation, save, export)
+4. Double-tap player to change number
 
 ## 🎨 Urban Style
 
-The board features a street-style dark theme with:
+The board features a street-style dark theme optimized for visibility:
 - Concrete-like court surface
-- Shadow effects for depth
-- High contrast lines for visibility
-- Zone labels for easy reference
+- High contrast white lines
+- White as default pen color
 
 ## 📄 License
 
@@ -106,3 +94,5 @@ MIT License
 
 - [Japan Korfball Association](https://korfball.jp)
 - [IKF Urban Korfball](https://korfball.sport)
+
+---
