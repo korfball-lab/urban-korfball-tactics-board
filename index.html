@@ -7,1199 +7,398 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#667eea">
-    <meta name="format-detection" content="telephone=no">
     <title>Urban Korfball Tactics Board</title>
     <style>
         :root {
             --primary: #667eea;
-            --primary-dark: #764ba2;
             --danger: #ef4444;
             --success: #10b981;
-            --warning: #f59e0b;
-            --text: #333;
-            --bg: #f0f2f5;
+            --text: #1a202c;
+            --text-light: #718096;
+            --bg: #f7fafc;
             --white: #fff;
+            --border: #e2e8f0;
             --safe-bottom: env(safe-area-inset-bottom, 0px);
             --safe-top: env(safe-area-inset-top, 0px);
         }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+        html, body { height: 100%; overflow: hidden; overscroll-behavior: none; position: fixed; width: 100%; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); touch-action: manipulation; }
+        .app { display: flex; flex-direction: column; height: 100dvh; padding-top: var(--safe-top); }
 
-        * { 
-            box-sizing: border-box; 
-            margin: 0; 
-            padding: 0; 
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-        
-        html, body { 
-            height: 100%; 
-            overflow: hidden;
-            overscroll-behavior: none;
-            position: fixed;
-            width: 100%;
-        }
-        
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background: var(--bg); 
-            touch-action: manipulation;
-        }
+        .header { background: var(--white); border-bottom: 1px solid var(--border); padding: 6px 12px; display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
+        .header h1 { font-size: 14px; font-weight: 600; color: var(--text); }
+        .header-btns { display: flex; gap: 6px; }
+        .icon-btn { width: 38px; height: 38px; border: none; background: var(--bg); border-radius: 8px; color: var(--text); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .icon-btn:active { background: var(--border); transform: scale(0.95); }
+        .icon-btn:disabled { opacity: 0.35; }
 
-        .app { 
-            display: flex; 
-            flex-direction: column; 
-            height: 100%; 
-            height: 100dvh;
-            padding-top: var(--safe-top);
-        }
+        .canvas-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 4px; overflow: hidden; background: var(--bg); position: relative; }
+        canvas { max-width: 100%; max-height: 100%; border-radius: 8px; touch-action: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: var(--white);
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-            min-height: 56px;
-        }
-        .header h1 { 
-            font-size: 17px; 
-            font-weight: 600;
-        }
-        .menu-btn {
-            min-width: 44px; 
-            min-height: 44px; 
-            border: none;
-            background: rgba(255,255,255,0.2);
-            border-radius: 10px; 
-            color: var(--white);
-            font-size: 22px; 
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .menu-btn:active { 
-            background: rgba(255,255,255,0.3);
-            transform: scale(0.95);
-        }
-
-        /* Canvas Area */
-        .canvas-container {
-            flex: 1; 
-            display: flex; 
-            align-items: center;
-            justify-content: center; 
-            padding: 8px;
-            overflow: hidden; 
-            position: relative;
-            background: var(--bg);
-        }
-        canvas { 
-            max-width: 100%; 
-            max-height: 100%; 
-            border-radius: 12px; 
-            touch-action: none;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        }
-
-        /* Floating Controls */
-        .float-controls {
-            position: absolute; 
-            top: 12px; 
-            right: 12px;
-            display: flex; 
-            gap: 8px; 
-            z-index: 50;
-        }
-        .float-btn {
-            min-width: 44px; 
-            min-height: 44px; 
-            border: none;
-            background: var(--white); 
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-            font-size: 20px; 
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .float-btn:disabled { opacity: 0.4; }
-        .float-btn:active { transform: scale(0.92); }
-
-        /* Frame Bar */
-        .frame-bar {
-            position: absolute;
-            bottom: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--white);
-            border-radius: 14px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-            padding: 10px 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 50;
-        }
-        .frame-info {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--primary);
-            min-width: 50px;
-            text-align: center;
-        }
-        .frame-btn {
-            min-width: 40px;
-            min-height: 40px;
-            border: none;
-            background: var(--bg);
-            border-radius: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .frame-bar { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: var(--white); border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); padding: 6px 10px; display: none; align-items: center; gap: 8px; }
+        .frame-bar.show { display: flex; }
+        .frame-info { font-size: 12px; font-weight: 600; color: var(--primary); min-width: 40px; text-align: center; }
+        .frame-btn { width: 34px; height: 34px; border: none; background: var(--bg); border-radius: 8px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .frame-btn:active { transform: scale(0.95); }
-        .frame-btn.success { background: var(--success); color: var(--white); }
-        .frame-btn.danger { background: var(--danger); color: var(--white); }
-        .frame-btn.warning { background: var(--warning); color: var(--white); }
+        .frame-btn.add { background: var(--success); color: #fff; }
+        .frame-btn.del { background: var(--danger); color: #fff; }
 
-        /* Bottom Bar */
-        .bottom-bar {
-            background: var(--white);
-            border-radius: 20px 20px 0 0;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
-            padding: 14px 12px;
-            padding-bottom: calc(14px + var(--safe-bottom));
-            flex-shrink: 0;
-        }
-        .tool-row { 
-            display: flex; 
-            justify-content: center; 
-            gap: 10px; 
-        }
-        .tool-btn {
-            min-width: 64px;
-            min-height: 58px; 
-            border: none;
-            background: var(--bg); 
-            border-radius: 14px; 
-            cursor: pointer;
-            display: flex; 
-            flex-direction: column; 
-            align-items: center;
-            justify-content: center; 
-            gap: 4px; 
-            color: var(--text);
-            transition: all 0.15s;
-        }
-        .tool-btn .icon { font-size: 24px; }
-        .tool-btn .label { font-size: 11px; font-weight: 500; }
-        .tool-btn.active { 
-            background: var(--primary); 
-            color: var(--white);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
+        .bottom-bar { background: var(--white); border-top: 1px solid var(--border); padding: 8px 16px; padding-bottom: calc(8px + var(--safe-bottom)); }
+        .tool-row { display: flex; justify-content: center; gap: 16px; }
+        .tool-btn { width: 70px; height: 50px; border: 2px solid var(--border); background: var(--white); border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--text); }
+        .tool-btn .icon { font-size: 20px; }
+        .tool-btn .label { font-size: 10px; font-weight: 600; }
+        .tool-btn.active { background: var(--primary); border-color: var(--primary); color: var(--white); }
         .tool-btn:active { transform: scale(0.95); }
 
-        .color-row {
-            display: flex; 
-            justify-content: center; 
-            gap: 14px;
-            margin-top: 14px; 
-            padding-top: 14px;
-            border-top: 1px solid rgba(0,0,0,0.08);
-        }
-        .color-btn {
-            min-width: 38px; 
-            min-height: 38px; 
-            border-radius: 50%;
-            border: 3px solid transparent; 
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .color-btn.active { 
-            border-color: var(--text); 
-            transform: scale(1.15);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-        .color-btn:active { transform: scale(0.9); }
-
-        /* Overlay & Side Panel */
-        .overlay {
-            position: fixed; 
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5); 
-            z-index: 150;
-            opacity: 0; 
-            visibility: hidden; 
-            transition: all 0.3s;
-        }
+        .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 150; opacity: 0; visibility: hidden; transition: all 0.3s; }
         .overlay.open { opacity: 1; visibility: visible; }
-
-        .side-panel {
-            position: fixed; 
-            top: 0; 
-            right: -300px;
-            width: 280px; 
-            max-width: 85vw; 
-            height: 100%;
-            background: var(--white); 
-            z-index: 200;
-            transition: right 0.3s ease-out; 
-            display: flex; 
-            flex-direction: column;
-            box-shadow: -4px 0 20px rgba(0,0,0,0.15);
-        }
+        .side-panel { position: fixed; top: 0; right: -300px; width: 280px; max-width: 85vw; height: 100%; background: var(--white); z-index: 200; transition: right 0.3s; display: flex; flex-direction: column; }
         .side-panel.open { right: 0; }
-        
-        .panel-header {
-            padding: 16px; 
-            padding-top: calc(16px + var(--safe-top));
-            background: var(--primary); 
-            color: var(--white);
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between;
-        }
-        .panel-header h2 { font-size: 18px; font-weight: 600; }
-        .close-btn {
-            min-width: 44px; 
-            min-height: 44px; 
-            border: none;
-            background: rgba(255,255,255,0.2); 
-            border-radius: 10px;
-            color: var(--white); 
-            font-size: 20px; 
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .close-btn:active { background: rgba(255,255,255,0.3); }
-        
-        .panel-content { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 16px;
-            -webkit-overflow-scrolling: touch;
-        }
-        .panel-section { margin-bottom: 24px; }
-        .panel-section h3 { 
-            font-size: 12px; 
-            color: #888; 
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px; 
-        }
-        .panel-btn {
-            width: 100%; 
-            min-height: 50px;
-            padding: 14px 16px; 
-            border: none;
-            background: var(--bg); 
-            border-radius: 12px;
-            font-size: 15px; 
-            color: var(--text); 
-            cursor: pointer;
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            margin-bottom: 10px;
-        }
-        .panel-btn:active { background: #e4e6eb; transform: scale(0.98); }
+        .panel-header { padding: 16px; padding-top: calc(12px + var(--safe-top)); background: var(--primary); color: var(--white); display: flex; align-items: center; justify-content: space-between; }
+        .panel-header h2 { font-size: 17px; font-weight: 600; }
+        .close-btn { width: 36px; height: 36px; border: none; background: rgba(255,255,255,0.2); border-radius: 8px; color: var(--white); font-size: 18px; cursor: pointer; }
+        .panel-content { flex: 1; overflow-y: auto; padding: 16px; }
+        .panel-section { margin-bottom: 20px; }
+        .panel-section h3 { font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; font-weight: 600; }
+
+        .color-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+        .color-option { width: 40px; height: 40px; border-radius: 10px; border: 3px solid transparent; cursor: pointer; }
+        .color-option.active { border-color: var(--text); transform: scale(1.1); }
+
+        .slider-box { background: var(--bg); border-radius: 10px; padding: 12px; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+        .slider { width: 100%; height: 6px; -webkit-appearance: none; background: var(--border); border-radius: 3px; }
+        .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; background: var(--primary); border-radius: 50%; }
+
+        .toggle-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border-radius: 10px; padding: 12px; }
+        .toggle-row span { font-size: 14px; }
+        .toggle { width: 50px; height: 28px; background: var(--border); border-radius: 14px; position: relative; cursor: pointer; transition: background 0.3s; }
+        .toggle.on { background: var(--primary); }
+        .toggle::after { content: ''; position: absolute; width: 24px; height: 24px; background: #fff; border-radius: 50%; top: 2px; left: 2px; transition: left 0.3s; }
+        .toggle.on::after { left: 24px; }
+
+        .panel-btn { width: 100%; min-height: 44px; padding: 10px 14px; border: none; background: var(--bg); border-radius: 10px; font-size: 14px; color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .panel-btn:active { background: var(--border); }
         .panel-btn.danger { background: #fee2e2; color: var(--danger); }
-        .panel-btn .icon { font-size: 18px; }
 
-        .slider-container { 
-            background: var(--bg); 
-            border-radius: 12px; 
-            padding: 14px; 
-        }
-        .slider-label { 
-            display: flex; 
-            justify-content: space-between; 
-            font-size: 14px; 
-            margin-bottom: 10px; 
-        }
-        .slider { 
-            width: 100%; 
-            height: 6px; 
-            -webkit-appearance: none; 
-            background: #ddd; 
-            border-radius: 3px; 
-        }
-        .slider::-webkit-slider-thumb { 
-            -webkit-appearance: none; 
-            width: 26px; 
-            height: 26px; 
-            background: var(--primary); 
-            border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
-        }
-
-        /* Modal */
-        .modal {
-            position: fixed; 
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.6); 
-            z-index: 300;
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            padding: 20px; 
-            opacity: 0; 
-            visibility: hidden; 
-            transition: all 0.3s;
-        }
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 300; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; visibility: hidden; transition: all 0.3s; }
         .modal.open { opacity: 1; visibility: visible; }
-        .modal-content {
-            background: var(--white); 
-            border-radius: 20px; 
-            padding: 24px;
-            width: 100%; 
-            max-width: 360px; 
-            max-height: 80vh; 
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        .modal-header { 
-            font-size: 20px; 
-            font-weight: 600; 
-            margin-bottom: 20px; 
-        }
-        .modal-input {
-            width: 100%; 
-            padding: 14px 16px; 
-            border: 2px solid #e5e7eb;
-            border-radius: 12px; 
-            font-size: 16px; 
-            margin-bottom: 12px;
-        }
-        .modal-input:focus { 
-            outline: none; 
-            border-color: var(--primary); 
-        }
-        textarea.modal-input { 
-            min-height: 120px; 
-            font-family: monospace; 
-            font-size: 13px;
-            resize: none;
-        }
-        .modal-actions { 
-            display: flex; 
-            gap: 12px; 
-            margin-top: 20px; 
-        }
-        .modal-btn { 
-            flex: 1; 
-            min-height: 50px;
-            padding: 14px; 
-            border: none; 
-            border-radius: 12px; 
-            font-size: 16px; 
-            font-weight: 600; 
-            cursor: pointer; 
-        }
+        .modal-box { background: var(--white); border-radius: 14px; padding: 20px; width: 100%; max-width: 320px; }
+        .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 14px; }
+        .modal-input { width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px; }
+        .modal-input:focus { outline: none; border-color: var(--primary); }
+        textarea.modal-input { min-height: 90px; font-family: monospace; font-size: 11px; resize: none; }
+        .modal-btns { display: flex; gap: 10px; margin-top: 14px; }
+        .modal-btn { flex: 1; height: 42px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
         .modal-btn.primary { background: var(--primary); color: var(--white); }
         .modal-btn.secondary { background: var(--bg); color: var(--text); }
-        .modal-btn:active { transform: scale(0.98); }
 
-        /* Toast */
-        .toast {
-            position: fixed; 
-            bottom: 140px; 
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--text); 
-            color: var(--white);
-            padding: 12px 24px; 
-            border-radius: 12px; 
-            font-size: 15px;
-            font-weight: 500;
-            z-index: 400; 
-            opacity: 0; 
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        .toast.show { 
-            transform: translateX(-50%) translateY(0); 
-            opacity: 1; 
-        }
-
-        /* Tablet & Desktop */
-        @media (min-width: 768px) {
-            .header h1 { font-size: 20px; }
-            .tool-btn { min-width: 80px; min-height: 66px; }
-            .tool-btn .icon { font-size: 28px; }
-            .tool-btn .label { font-size: 12px; }
-            .color-btn { min-width: 44px; min-height: 44px; }
-        }
+        .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(60px); background: var(--text); color: var(--white); padding: 10px 20px; border-radius: 8px; font-size: 13px; z-index: 400; opacity: 0; transition: all 0.3s; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     </style>
 </head>
 <body>
     <div class="app">
         <header class="header">
-            <h1>🏙️ Urban Korfball Board</h1>
-            <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+            <h1>🏙️ Urban Korfball</h1>
+            <div class="header-btns">
+                <button class="icon-btn" id="undoBtn">↩</button>
+                <button class="icon-btn" id="redoBtn">↪</button>
+                <button class="icon-btn" id="menuBtn">☰</button>
+            </div>
         </header>
-
         <div class="canvas-container">
             <canvas id="board"></canvas>
-            <div class="float-controls">
-                <button class="float-btn" id="undoBtn" aria-label="Undo">↩</button>
-                <button class="float-btn" id="redoBtn" aria-label="Redo">↪</button>
-            </div>
-            <div class="frame-bar">
-                <button class="frame-btn" id="prevFrame" aria-label="Previous">◀</button>
-                <span class="frame-info"><span id="currentFrame">1</span>/<span id="totalFrames">1</span></span>
-                <button class="frame-btn" id="nextFrame" aria-label="Next">▶</button>
-                <button class="frame-btn success" id="addFrame" aria-label="Add">＋</button>
-                <button class="frame-btn danger" id="delFrame" aria-label="Delete">🗑</button>
+            <div class="frame-bar" id="frameBar">
+                <button class="frame-btn" id="prevFrame">◀</button>
+                <span class="frame-info"><span id="curFrame">1</span>/<span id="totalFrames">1</span></span>
+                <button class="frame-btn" id="nextFrame">▶</button>
+                <button class="frame-btn add" id="addFrame">＋</button>
+                <button class="frame-btn del" id="delFrame">🗑</button>
             </div>
         </div>
-
         <div class="bottom-bar">
             <div class="tool-row">
-                <button class="tool-btn active" data-tool="select">
-                    <span class="icon">👆</span>
-                    <span class="label">Select</span>
-                </button>
-                <button class="tool-btn" data-tool="freehand">
-                    <span class="icon">✏️</span>
-                    <span class="label">Draw</span>
-                </button>
-                <button class="tool-btn" data-tool="eraser">
-                    <span class="icon">🧹</span>
-                    <span class="label">Erase</span>
-                </button>
-            </div>
-            <div class="color-row">
-                <button class="color-btn active" data-color="#000000" style="background:#000" aria-label="Black"></button>
-                <button class="color-btn" data-color="#ef4444" style="background:#ef4444" aria-label="Red"></button>
-                <button class="color-btn" data-color="#3b82f6" style="background:#3b82f6" aria-label="Blue"></button>
-                <button class="color-btn" data-color="#10b981" style="background:#10b981" aria-label="Green"></button>
-                <button class="color-btn" data-color="#ffffff" style="background:#fff;border:2px solid #ccc" aria-label="White"></button>
+                <button class="tool-btn active" data-tool="select"><span class="icon">✋</span><span class="label">MOVE</span></button>
+                <button class="tool-btn" data-tool="freehand"><span class="icon">✏️</span><span class="label">DRAW</span></button>
+                <button class="tool-btn" data-tool="eraser"><span class="icon">🧽</span><span class="label">ERASE</span></button>
             </div>
         </div>
     </div>
 
-    <!-- Side Panel -->
     <div class="overlay" id="overlay"></div>
     <div class="side-panel" id="sidePanel">
-        <div class="panel-header">
-            <h2>Menu</h2>
-            <button class="close-btn" id="closePanel" aria-label="Close">✕</button>
-        </div>
+        <div class="panel-header"><h2>Settings</h2><button class="close-btn" id="closePanel">✕</button></div>
         <div class="panel-content">
             <div class="panel-section">
-                <h3>Line Width</h3>
-                <div class="slider-container">
-                    <div class="slider-label">
-                        <span>Width</span>
-                        <span id="lineWidthValue">3px</span>
-                    </div>
-                    <input type="range" class="slider" id="lineWidth" min="1" max="8" value="3">
+                <h3>Pen Color</h3>
+                <div class="color-grid">
+                    <button class="color-option active" data-color="#ffffff" style="background:#fff;border:2px solid #ccc"></button>
+                    <button class="color-option" data-color="#ef4444" style="background:#ef4444"></button>
+                    <button class="color-option" data-color="#3b82f6" style="background:#3b82f6"></button>
+                    <button class="color-option" data-color="#10b981" style="background:#10b981"></button>
+                    <button class="color-option" data-color="#f59e0b" style="background:#f59e0b"></button>
+                    <button class="color-option" data-color="#000000" style="background:#000"></button>
                 </div>
             </div>
             <div class="panel-section">
-                <h3>Playback</h3>
-                <button class="panel-btn" id="playBtn">
-                    <span class="icon">▶️</span> Play Animation
-                </button>
-                <div class="slider-container" style="margin-top:10px">
-                    <div class="slider-label">
-                        <span>Speed</span>
-                        <span id="speedValue">1.0x</span>
-                    </div>
-                    <input type="range" class="slider" id="playbackSpeed" min="100" max="3000" value="1000" step="100">
+                <h3>Pen Width</h3>
+                <div class="slider-box">
+                    <div class="slider-label"><span>Width</span><span id="lineWidthValue">3px</span></div>
+                    <input type="range" class="slider" id="lineWidth" min="1" max="10" value="3">
+                </div>
+            </div>
+            <div class="panel-section">
+                <h3>Animation</h3>
+                <div class="toggle-row">
+                    <span>Show Frame Controls</span>
+                    <div class="toggle" id="frameToggle"></div>
+                </div>
+                <button class="panel-btn" id="playBtn" style="margin-top:10px">▶️ Play Animation</button>
+                <div class="slider-box" style="margin-top:8px">
+                    <div class="slider-label"><span>Speed</span><span id="speedValue">1.0s</span></div>
+                    <input type="range" class="slider" id="speedSlider" min="200" max="2000" value="1000" step="100">
                 </div>
             </div>
             <div class="panel-section">
                 <h3>File</h3>
-                <button class="panel-btn" id="saveBtn">
-                    <span class="icon">💾</span> Save
-                </button>
-                <button class="panel-btn" id="loadBtn">
-                    <span class="icon">📂</span> Load
-                </button>
-                <button class="panel-btn" id="exportBtn">
-                    <span class="icon">📷</span> Export PNG
-                </button>
+                <button class="panel-btn" id="saveBtn">💾 Save</button>
+                <button class="panel-btn" id="loadBtn">📂 Load</button>
+                <button class="panel-btn" id="exportBtn">📷 Export PNG</button>
             </div>
             <div class="panel-section">
-                <h3>Actions</h3>
-                <button class="panel-btn" id="clearBtn">
-                    <span class="icon">🗑️</span> Clear Drawings
-                </button>
-                <button class="panel-btn danger" id="resetBtn">
-                    <span class="icon">🔄</span> Reset All
-                </button>
+                <h3>Reset</h3>
+                <button class="panel-btn" id="clearBtn">🗑️ Clear Drawings</button>
+                <button class="panel-btn danger" id="resetBtn">🔄 Reset All</button>
             </div>
         </div>
     </div>
 
-    <!-- Modals -->
-    <div class="modal" id="saveModal">
-        <div class="modal-content">
-            <div class="modal-header">💾 Save Play</div>
-            <input type="text" class="modal-input" id="playName" placeholder="Play name">
-            <textarea class="modal-input" id="saveData" readonly></textarea>
-            <div class="modal-actions">
-                <button class="modal-btn secondary" id="closeSaveModal">Cancel</button>
-                <button class="modal-btn primary" id="copyBtn">Copy</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="loadModal">
-        <div class="modal-content">
-            <div class="modal-header">📂 Load Play</div>
-            <textarea class="modal-input" id="loadData" placeholder="Paste saved data here"></textarea>
-            <div class="modal-actions">
-                <button class="modal-btn secondary" id="closeLoadModal">Cancel</button>
-                <button class="modal-btn primary" id="loadDataBtn">Load</button>
-            </div>
-        </div>
-    </div>
-
+    <div class="modal" id="saveModal"><div class="modal-box"><div class="modal-title">💾 Save</div><textarea class="modal-input" id="saveData" readonly></textarea><div class="modal-btns"><button class="modal-btn secondary" id="closeSaveModal">Cancel</button><button class="modal-btn primary" id="copyBtn">Copy</button></div></div></div>
+    <div class="modal" id="loadModal"><div class="modal-box"><div class="modal-title">📂 Load</div><textarea class="modal-input" id="loadData" placeholder="Paste data here"></textarea><div class="modal-btns"><button class="modal-btn secondary" id="closeLoadModal">Cancel</button><button class="modal-btn primary" id="loadDataBtn">Load</button></div></div></div>
     <div class="toast" id="toast"></div>
 
     <script>
-        // ========== Court Configuration (Circular Court) ==========
-        const OUTER_RADIUS = 9;      // Outer circle 9m
-        const MIDDLE_RADIUS = 6;     // Middle circle 6m
-        const INNER_RADIUS = 2.5;    // Inner circle 2.5m
-        const BORDER_WIDTH = 2;
-        const PLAYER_RADIUS = 0.6;
-        const COURT_SIZE = OUTER_RADIUS * 2 + BORDER_WIDTH * 2;
-        const CENTER_X = BORDER_WIDTH + OUTER_RADIUS;
-        const CENTER_Y = BORDER_WIDTH + OUTER_RADIUS;
+        const R_OUT = 9, R_MID = 6, R_IN = 2.5, BORDER = 1.5, PLAYER_R = 0.55;
+        const TOTAL = R_OUT * 2 + BORDER * 2;
+        const CX = BORDER + R_OUT, CY = BORDER + R_OUT;
+        const canvas = document.getElementById('board'), ctx = canvas.getContext('2d');
+        let scale, dpr = window.devicePixelRatio || 1;
+        let tool = 'select', penColor = '#ffffff', penWidth = 3;
+        let frames = [], frameIdx = 0;
+        let selected = null, dragging = false, offset = {x:0,y:0}, tempDraw = null;
+        let history = [], historyIdx = -1;
+        let playing = false, playInterval = null, playSpeed = 1000;
 
-        const canvas = document.getElementById('board');
-        const ctx = canvas.getContext('2d');
-        let scale;
-        let dpr = window.devicePixelRatio || 1;
-
-        let currentTool = 'select';
-        let currentColor = '#000000';
-        let currentLineWidth = 3;
-        let frames = [];
-        let currentFrameIndex = 0;
-        let selectedObject = null;
-        let isDragging = false;
-        let offset = { x: 0, y: 0 };
-        let tempDrawing = null;
-        let history = [];
-        let historyIndex = -1;
-        let isPlaying = false;
-        let playbackInterval = null;
-        let playbackSpeed = 1000;
-
-        // ========== Create Default Frame ==========
-        function createNewFrame() {
-            const cx = CENTER_X;
-            const cy = CENTER_Y;
-            const subRadius = OUTER_RADIUS + 1.2; // Substitutes outside court
-
+        function createFrame() {
+            const sub = R_OUT + 1.1;
             return {
                 players: [
-                    // Team A (Red) - On Court (2 male, 2 female)
-                    {position: [cx - 4, cy - 3], color: '#ef4444', number: '1', gender: 'boy', team: 'A'},
-                    {position: [cx + 2, cy - 5], color: '#ef4444', number: '2', gender: 'boy', team: 'A'},
-                    {position: [cx - 5, cy + 2], color: '#ef4444', number: '3', gender: 'girl', team: 'A'},
-                    {position: [cx + 1, cy + 4], color: '#ef4444', number: '4', gender: 'girl', team: 'A'},
-                    // Team A - Substitutes (1 male, 1 female) - outside court
-                    {position: [cx - subRadius * 0.7, cy - subRadius * 0.7], color: '#ef4444', number: '5', gender: 'boy', team: 'A'},
-                    {position: [cx - subRadius * 0.9, cy - subRadius * 0.3], color: '#ef4444', number: '6', gender: 'girl', team: 'A'},
-                    
-                    // Team B (Blue) - On Court (2 male, 2 female)
-                    {position: [cx + 4, cy + 3], color: '#3b82f6', number: '7', gender: 'boy', team: 'B'},
-                    {position: [cx - 2, cy + 5], color: '#3b82f6', number: '8', gender: 'boy', team: 'B'},
-                    {position: [cx + 5, cy - 2], color: '#3b82f6', number: '9', gender: 'girl', team: 'B'},
-                    {position: [cx - 1, cy - 4], color: '#3b82f6', number: '10', gender: 'girl', team: 'B'},
-                    // Team B - Substitutes (1 male, 1 female) - outside court
-                    {position: [cx + subRadius * 0.7, cy + subRadius * 0.7], color: '#3b82f6', number: '11', gender: 'boy', team: 'B'},
-                    {position: [cx + subRadius * 0.9, cy + subRadius * 0.3], color: '#3b82f6', number: '12', gender: 'girl', team: 'B'},
+                    // Team A (Red) - On Court: 2M + 2F
+                    {x:CX-4,y:CY-3,c:'#ef4444',n:'1',g:'M'},{x:CX+2,y:CY-5,c:'#ef4444',n:'2',g:'M'},
+                    {x:CX-5,y:CY+2,c:'#ef4444',n:'3',g:'F'},{x:CX+1,y:CY+4,c:'#ef4444',n:'4',g:'F'},
+                    // Team A - Subs: 1M + 1F (outside)
+                    {x:CX-sub*0.7,y:CY-sub*0.7,c:'#ef4444',n:'5',g:'M'},{x:CX-sub*0.9,y:CY-sub*0.3,c:'#ef4444',n:'6',g:'F'},
+                    // Team B (Blue) - On Court: 2M + 2F
+                    {x:CX+4,y:CY+3,c:'#3b82f6',n:'1',g:'M'},{x:CX-2,y:CY+5,c:'#3b82f6',n:'2',g:'M'},
+                    {x:CX+5,y:CY-2,c:'#3b82f6',n:'3',g:'F'},{x:CX-1,y:CY-4,c:'#3b82f6',n:'4',g:'F'},
+                    // Team B - Subs: 1M + 1F (outside)
+                    {x:CX+sub*0.7,y:CY+sub*0.7,c:'#3b82f6',n:'5',g:'M'},{x:CX+sub*0.9,y:CY+sub*0.3,c:'#3b82f6',n:'6',g:'F'},
                 ],
-                ball: { position: [cx - 3, cy - 3], color: '#FFEB3B', radius: 0.4 },
+                ball: {x:CX-3,y:CY-3,c:'#FFEB3B',r:0.4},
                 drawings: []
             };
         }
 
-        frames.push(createNewFrame());
+        function init() { frames = [createFrame()]; frameIdx = 0; }
 
-        // ========== Resize Canvas (High DPI Support) ==========
-        function resizeCanvas() {
-            const totalSize = COURT_SIZE + 2;
-            const aspectRatio = 1; // Square for circular court
-            const container = canvas.parentElement;
-            const maxWidth = container.clientWidth - 16;
-            const maxHeight = container.clientHeight - 80;
-
-            let displaySize = Math.min(maxWidth, maxHeight);
-
+        function resize() {
+            const cont = canvas.parentElement, maxW = cont.clientWidth - 8, maxH = cont.clientHeight - 60;
+            let sz = Math.min(maxW, maxH);
             dpr = window.devicePixelRatio || 1;
-            canvas.width = displaySize * dpr;
-            canvas.height = displaySize * dpr;
-            canvas.style.width = displaySize + 'px';
-            canvas.style.height = displaySize + 'px';
-            ctx.scale(dpr, dpr);
-
-            scale = displaySize / totalSize;
+            canvas.width = sz * dpr; canvas.height = sz * dpr;
+            canvas.style.width = sz + 'px'; canvas.style.height = sz + 'px';
+            scale = sz / TOTAL;
             draw();
-        }
-
-        // ========== Draw Court ==========
-        function drawCourt() {
-            const cx = CENTER_X * scale;
-            const cy = CENTER_Y * scale;
-            const outerR = OUTER_RADIUS * scale;
-            const middleR = MIDDLE_RADIUS * scale;
-            const innerR = INNER_RADIUS * scale;
-
-            // Background - Urban/Street style
-            const bgGradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, outerR * 1.5);
-            bgGradient.addColorStop(0, '#4a5568');
-            bgGradient.addColorStop(1, '#2d3748');
-            ctx.fillStyle = bgGradient;
-            ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-
-            // Shadow for court
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-            ctx.shadowBlur = 20;
-            ctx.shadowOffsetY = 5;
-
-            // Outer circle (9m) - Main court
-            const courtGradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, outerR);
-            courtGradient.addColorStop(0, '#718096');
-            courtGradient.addColorStop(0.7, '#5a6778');
-            courtGradient.addColorStop(1, '#4a5568');
-            ctx.fillStyle = courtGradient;
-            ctx.beginPath();
-            ctx.arc(cx, cy, outerR, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.shadowColor = 'transparent';
-            ctx.shadowBlur = 0;
-            ctx.shadowOffsetY = 0;
-
-            // Outer circle boundary
-            ctx.strokeStyle = '#FFFFFF';
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.arc(cx, cy, outerR, 0, 2 * Math.PI);
-            ctx.stroke();
-
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(cx, cy, outerR, 0, 2 * Math.PI);
-            ctx.stroke();
-
-            // Middle circle (6m)
-            ctx.strokeStyle = '#FFFFFF';
-            ctx.lineWidth = 3;
-            ctx.setLineDash([10, 6]);
-            ctx.beginPath();
-            ctx.arc(cx, cy, middleR, 0, 2 * Math.PI);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            // Inner circle (2.5m) - Penalty area
-            ctx.strokeStyle = '#FFFFFF';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(cx, cy, innerR, 0, 2 * Math.PI);
-            ctx.stroke();
-
-            // Fill inner circle slightly
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.beginPath();
-            ctx.arc(cx, cy, innerR, 0, 2 * Math.PI);
-            ctx.fill();
-
-            // Korf in center
-            drawKorf(cx, cy);
-
-            // Zone labels
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.font = `bold ${0.8 * scale}px Arial`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('2.5m', cx, cy + innerR + 0.6 * scale);
-            ctx.fillText('6m', cx, cy + middleR + 0.6 * scale);
-            ctx.fillText('9m', cx, cy + outerR - 0.6 * scale);
-        }
-
-        function drawKorf(x, y) {
-            // Korf post shadow
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-            ctx.beginPath();
-            ctx.arc(x + 2, y + 2, 0.5 * scale, 0, 2 * Math.PI);
-            ctx.fill();
-
-            // Korf
-            ctx.beginPath();
-            ctx.arc(x, y, 0.5 * scale, 0, 2 * Math.PI);
-            ctx.fillStyle = '#D4A017';
-            ctx.fill();
-            ctx.strokeStyle = '#8B6914';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-
-            // Inner ring
-            ctx.beginPath();
-            ctx.arc(x, y, 0.25 * scale, 0, 2 * Math.PI);
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-
-        function drawPlayer(player) {
-            const x = player.position[0] * scale;
-            const y = player.position[1] * scale;
-            const size = PLAYER_RADIUS * scale;
-
-            // Shadow
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-            if (player.gender === 'boy') {
-                ctx.beginPath();
-                ctx.arc(x + 2, y + 2, size, 0, 2 * Math.PI);
-                ctx.fill();
-            } else {
-                ctx.fillRect(x - size + 2, y - size + 2, size * 2, size * 2);
-            }
-
-            // Player
-            ctx.fillStyle = player.color;
-            ctx.strokeStyle = 'white';
-            ctx.lineWidth = 2;
-
-            if (player.gender === 'boy') {
-                ctx.beginPath();
-                ctx.arc(x, y, size, 0, 2 * Math.PI);
-                ctx.fill();
-                ctx.stroke();
-            } else {
-                ctx.fillRect(x - size, y - size, size * 2, size * 2);
-                ctx.strokeRect(x - size, y - size, size * 2, size * 2);
-            }
-
-            ctx.fillStyle = 'white';
-            ctx.font = `bold ${size * 0.9}px Arial`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(player.number, x, y);
-        }
-
-        function drawBall() {
-            const frame = frames[currentFrameIndex];
-            const x = frame.ball.position[0] * scale;
-            const y = frame.ball.position[1] * scale;
-            const r = frame.ball.radius * scale;
-
-            // Shadow
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-            ctx.beginPath();
-            ctx.arc(x + 2, y + 2, r, 0, 2 * Math.PI);
-            ctx.fill();
-
-            // Ball
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, 2 * Math.PI);
-            ctx.fillStyle = frame.ball.color;
-            ctx.fill();
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-
-        function drawFreehand(points, color, lineWidth) {
-            if (points.length < 2) return;
-            ctx.strokeStyle = color;
-            ctx.lineWidth = lineWidth;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.beginPath();
-            ctx.moveTo(points[0].x, points[0].y);
-            for (let i = 1; i < points.length - 1; i++) {
-                const xc = (points[i].x + points[i + 1].x) / 2;
-                const yc = (points[i].y + points[i + 1].y) / 2;
-                ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
-            }
-            ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
-            ctx.stroke();
-        }
-
-        function drawDrawings() {
-            frames[currentFrameIndex].drawings.forEach(d => {
-                if (d.type === 'freehand') drawFreehand(d.points, d.color, d.lineWidth || 3);
-            });
         }
 
         function draw() {
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.scale(dpr, dpr);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.setTransform(1,0,0,1,0,0); ctx.scale(dpr,dpr);
+            ctx.clearRect(0,0,canvas.width,canvas.height);
             drawCourt();
-            frames[currentFrameIndex].players.forEach(drawPlayer);
-            drawBall();
-            drawDrawings();
-            if (tempDrawing && tempDrawing.points) drawFreehand(tempDrawing.points, currentColor, currentLineWidth);
-            updateFrameDisplay();
+            const f = frames[frameIdx];
+            f.players.forEach(drawPlayer);
+            drawBall(f.ball);
+            f.drawings.forEach(d => drawLine(d.pts,d.c,d.w));
+            if (tempDraw) drawLine(tempDraw.pts, penColor, penWidth);
+            updFrameDisp();
         }
 
-        function updateFrameDisplay() {
-            document.getElementById('currentFrame').textContent = currentFrameIndex + 1;
-            document.getElementById('totalFrames').textContent = frames.length;
+        function drawCourt() {
+            const cx = CX*scale, cy = CY*scale;
+            const ro = R_OUT*scale, rm = R_MID*scale, ri = R_IN*scale;
+
+            // Dark background
+            const bg = ctx.createRadialGradient(cx,cy,0,cx,cy,ro*1.5);
+            bg.addColorStop(0,'#4a5568'); bg.addColorStop(1,'#2d3748');
+            ctx.fillStyle = bg; ctx.fillRect(0,0,canvas.width/dpr,canvas.height/dpr);
+
+            // Court surface
+            ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 15; ctx.shadowOffsetY = 4;
+            const cg = ctx.createRadialGradient(cx,cy,0,cx,cy,ro);
+            cg.addColorStop(0,'#718096'); cg.addColorStop(1,'#4a5568');
+            ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(cx,cy,ro,0,Math.PI*2); ctx.fill();
+            ctx.shadowColor = 'transparent';
+
+            // Outer circle (9m)
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(cx,cy,ro,0,Math.PI*2); ctx.stroke();
+
+            // Middle circle (6m) - dashed
+            ctx.setLineDash([10,6]); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx,cy,rm,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+
+            // Inner circle (2.5m)
+            ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx,cy,ri,0,Math.PI*2); ctx.stroke();
+            ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.beginPath(); ctx.arc(cx,cy,ri,0,Math.PI*2); ctx.fill();
+
+            // Korf at center
+            ctx.beginPath(); ctx.arc(cx,cy,0.5*scale,0,Math.PI*2); ctx.fillStyle='#D4A017'; ctx.fill();
+            ctx.strokeStyle='#8B6914'; ctx.lineWidth=3; ctx.stroke();
+            ctx.beginPath(); ctx.arc(cx,cy,0.25*scale,0,Math.PI*2); ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.stroke();
+
         }
 
-        // ========== Touch/Mouse Handling ==========
-        function getPos(evt) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = (canvas.width / dpr) / rect.width;
-            const scaleY = (canvas.height / dpr) / rect.height;
-            let clientX, clientY;
-            if (evt.touches && evt.touches.length > 0) {
-                clientX = evt.touches[0].clientX;
-                clientY = evt.touches[0].clientY;
-            } else {
-                clientX = evt.clientX;
-                clientY = evt.clientY;
-            }
-            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+        function drawPlayer(p) {
+            const x = p.x*scale, y = p.y*scale, r = PLAYER_R*scale;
+            // Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.25)';
+            if (p.g==='M') { ctx.beginPath(); ctx.arc(x+2,y+2,r,0,Math.PI*2); ctx.fill(); }
+            else { ctx.fillRect(x-r+2,y-r+2,r*2,r*2); }
+            // Player
+            ctx.fillStyle = p.c; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+            if (p.g==='M') { ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); ctx.stroke(); }
+            else { ctx.fillRect(x-r,y-r,r*2,r*2); ctx.strokeRect(x-r,y-r,r*2,r*2); }
+            ctx.fillStyle = '#fff'; ctx.font = `bold ${r*1.4}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(p.n, x, y+1);
         }
 
-        function isInPlayer(pos, player) {
-            const px = player.position[0] * scale;
-            const py = player.position[1] * scale;
-            const r = PLAYER_RADIUS * scale * 1.4;
-            if (player.gender === 'boy') return Math.sqrt((pos.x - px) ** 2 + (pos.y - py) ** 2) <= r;
-            return pos.x >= px - r && pos.x <= px + r && pos.y >= py - r && pos.y <= py + r;
+        function drawBall(b) {
+            const x = b.x*scale, y = b.y*scale, r = b.r*scale;
+            ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.arc(x+2,y+2,r,0,Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle = b.c; ctx.fill();
+            ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.stroke();
         }
 
-        function isInBall(pos) {
-            const frame = frames[currentFrameIndex];
-            const bx = frame.ball.position[0] * scale;
-            const by = frame.ball.position[1] * scale;
-            return Math.sqrt((pos.x - bx) ** 2 + (pos.y - by) ** 2) <= frame.ball.radius * scale * 2;
+        function drawLine(pts,c,w) {
+            if (pts.length<2) return;
+            ctx.strokeStyle = c; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+            ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y);
+            for (let i=1;i<pts.length-1;i++) { const xc=(pts[i].x+pts[i+1].x)/2, yc=(pts[i].y+pts[i+1].y)/2; ctx.quadraticCurveTo(pts[i].x,pts[i].y,xc,yc); }
+            ctx.lineTo(pts[pts.length-1].x,pts[pts.length-1].y); ctx.stroke();
         }
 
-        function handleStart(evt) {
-            if (isPlaying) return;
-            evt.preventDefault();
-            const pos = getPos(evt);
-            const frame = frames[currentFrameIndex];
+        function updFrameDisp() { document.getElementById('curFrame').textContent=frameIdx+1; document.getElementById('totalFrames').textContent=frames.length; }
 
-            if (currentTool === 'select') {
-                if (isInBall(pos)) {
-                    selectedObject = frame.ball;
-                    isDragging = true;
-                    offset.x = pos.x - frame.ball.position[0] * scale;
-                    offset.y = pos.y - frame.ball.position[1] * scale;
-                    return;
-                }
-                for (const player of frame.players) {
-                    if (isInPlayer(pos, player)) {
-                        selectedObject = player;
-                        isDragging = true;
-                        offset.x = pos.x - player.position[0] * scale;
-                        offset.y = pos.y - player.position[1] * scale;
-                        return;
-                    }
-                }
-            } else if (currentTool === 'freehand') {
-                tempDrawing = { points: [pos] };
-            } else if (currentTool === 'eraser') {
-                eraseAt(pos);
-            }
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect(), scX = (canvas.width/dpr)/rect.width, scY = (canvas.height/dpr)/rect.height;
+            const cx = e.touches ? e.touches[0].clientX : e.clientX, cy = e.touches ? e.touches[0].clientY : e.clientY;
+            return {x:(cx-rect.left)*scX, y:(cy-rect.top)*scY};
         }
 
-        function handleMove(evt) {
-            if (isPlaying) return;
-            evt.preventDefault();
-            const pos = getPos(evt);
+        function hit(pos,obj,r) { return Math.hypot(pos.x-obj.x*scale, pos.y-obj.y*scale) <= r*scale*1.5; }
 
-            if (currentTool === 'select' && isDragging && selectedObject) {
-                selectedObject.position[0] = (pos.x - offset.x) / scale;
-                selectedObject.position[1] = (pos.y - offset.y) / scale;
-                draw();
-            } else if (currentTool === 'freehand' && tempDrawing) {
-                const last = tempDrawing.points[tempDrawing.points.length - 1];
-                if (Math.sqrt((pos.x - last.x) ** 2 + (pos.y - last.y) ** 2) > 2) {
-                    tempDrawing.points.push(pos);
-                    draw();
-                }
-            } else if (currentTool === 'eraser' && (evt.buttons === 1 || evt.touches)) {
-                eraseAt(pos);
-            }
+        function onStart(e) {
+            if (playing) return;
+            e.preventDefault(); const pos = getPos(e); const f = frames[frameIdx];
+            if (tool==='select') {
+                if (hit(pos,f.ball,f.ball.r)) { selected=f.ball; dragging=true; offset={x:pos.x-f.ball.x*scale,y:pos.y-f.ball.y*scale}; return; }
+                for (const p of f.players) if (hit(pos,p,PLAYER_R)) { selected=p; dragging=true; offset={x:pos.x-p.x*scale,y:pos.y-p.y*scale}; return; }
+            } else if (tool==='freehand') { tempDraw={pts:[pos]}; }
+            else if (tool==='eraser') { erase(pos); }
         }
 
-        function handleEnd(evt) {
-            if (isPlaying) return;
-            evt.preventDefault();
-            const frame = frames[currentFrameIndex];
-            if (currentTool === 'select' && isDragging) saveToHistory();
-            if (currentTool === 'freehand' && tempDrawing && tempDrawing.points.length > 1) {
-                frame.drawings.push({ type: 'freehand', points: tempDrawing.points, color: currentColor, lineWidth: currentLineWidth });
-                saveToHistory();
-            }
-            isDragging = false;
-            selectedObject = null;
-            tempDrawing = null;
-            draw();
+        function onMove(e) {
+            if (playing) return;
+            e.preventDefault(); const pos = getPos(e);
+            if (tool==='select' && dragging && selected) { selected.x=(pos.x-offset.x)/scale; selected.y=(pos.y-offset.y)/scale; draw(); }
+            else if (tool==='freehand' && tempDraw) { const last=tempDraw.pts[tempDraw.pts.length-1]; if(Math.hypot(pos.x-last.x,pos.y-last.y)>2){tempDraw.pts.push(pos);draw();} }
+            else if (tool==='eraser' && (e.buttons===1||e.touches)) { erase(pos); }
         }
 
-        function eraseAt(pos) {
-            const frame = frames[currentFrameIndex];
-            const r = 20;
-            const before = frame.drawings.length;
-            frame.drawings = frame.drawings.filter(d => !d.points.some(p => Math.sqrt((p.x - pos.x) ** 2 + (p.y - pos.y) ** 2) < r));
-            if (frame.drawings.length !== before) draw();
+        function onEnd(e) {
+            if (playing) return;
+            e.preventDefault();
+            if (tool==='select' && dragging) saveHist();
+            if (tool==='freehand' && tempDraw && tempDraw.pts.length>1) { frames[frameIdx].drawings.push({pts:tempDraw.pts,c:penColor,w:penWidth}); saveHist(); }
+            dragging=false; selected=null; tempDraw=null; draw();
         }
 
-        // Double tap to edit number
+        function erase(pos) {
+            const f = frames[frameIdx], before = f.drawings.length;
+            f.drawings = f.drawings.filter(d=>!d.pts.some(p=>Math.hypot(p.x-pos.x,p.y-pos.y)<25));
+            if (f.drawings.length!==before) { saveHist(); draw(); }
+        }
+
         let lastTap = 0;
-        function handleDoubleTap(evt) {
-            if (isPlaying) return;
+        function onDblTap(e) {
+            if (playing) return;
             const now = Date.now();
-            if (now - lastTap < 300) {
-                const pos = getPos(evt);
-                for (const player of frames[currentFrameIndex].players) {
-                    if (isInPlayer(pos, player)) {
-                        const newNum = prompt('Enter player number:', player.number);
-                        if (newNum !== null && newNum.trim()) {
-                            player.number = newNum.trim();
-                            saveToHistory();
-                            draw();
-                        }
-                        return;
-                    }
-                }
-            }
+            if (now-lastTap<300) { const pos=getPos(e); for(const p of frames[frameIdx].players) if(hit(pos,p,PLAYER_R)){const n=prompt('Number:',p.n);if(n!==null&&n.trim()){p.n=n.trim();saveHist();draw();}return;} }
             lastTap = now;
         }
 
-        // ========== History ==========
-        function saveToHistory() {
-            history = history.slice(0, historyIndex + 1);
-            history.push(JSON.parse(JSON.stringify(frames)));
-            historyIndex++;
-            if (history.length > 50) { history.shift(); historyIndex--; }
-            updateHistoryBtns();
-        }
+        function saveHist() { history=history.slice(0,historyIdx+1); history.push(JSON.parse(JSON.stringify(frames))); historyIdx++; if(history.length>50){history.shift();historyIdx--;} updHist(); }
+        function undo() { if(historyIdx>0){historyIdx--;frames=JSON.parse(JSON.stringify(history[historyIdx]));if(frameIdx>=frames.length)frameIdx=frames.length-1;draw();updHist();} }
+        function redo() { if(historyIdx<history.length-1){historyIdx++;frames=JSON.parse(JSON.stringify(history[historyIdx]));draw();updHist();} }
+        function updHist() { document.getElementById('undoBtn').disabled=historyIdx<=0; document.getElementById('redoBtn').disabled=historyIdx>=history.length-1; }
 
-        function undo() {
-            if (historyIndex > 0) {
-                historyIndex--;
-                frames = JSON.parse(JSON.stringify(history[historyIndex]));
-                draw();
-                updateHistoryBtns();
-            }
-        }
+        function addFrame() { if(playing)return; frames.push(JSON.parse(JSON.stringify(frames[frameIdx]))); frameIdx=frames.length-1; saveHist(); draw(); toast('Frame added'); }
+        function delFrame() { if(playing||frames.length<=1)return; frames.splice(frameIdx,1); if(frameIdx>=frames.length)frameIdx=frames.length-1; saveHist(); draw(); toast('Frame deleted'); }
+        function prevFrame() { if(frameIdx>0){frameIdx--;draw();} }
+        function nextFrame() { if(frameIdx<frames.length-1){frameIdx++;draw();} }
 
-        function redo() {
-            if (historyIndex < history.length - 1) {
-                historyIndex++;
-                frames = JSON.parse(JSON.stringify(history[historyIndex]));
-                draw();
-                updateHistoryBtns();
-            }
-        }
+        function startPlay() { if(playing||frames.length<=1)return; playing=true; togglePanel(false); document.getElementById('playBtn').textContent='⏸️ Stop'; if(frameIdx>=frames.length-1)frameIdx=0; playInterval=setInterval(()=>{frameIdx++;if(frameIdx>=frames.length)frameIdx=0;draw();},playSpeed); }
+        function stopPlay() { playing=false; if(playInterval){clearInterval(playInterval);playInterval=null;} document.getElementById('playBtn').textContent='▶️ Play Animation'; }
 
-        function updateHistoryBtns() {
-            document.getElementById('undoBtn').disabled = historyIndex <= 0;
-            document.getElementById('redoBtn').disabled = historyIndex >= history.length - 1;
-        }
+        function toast(m) { const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1500); }
+        function togglePanel(o) { document.getElementById('sidePanel').classList.toggle('open',o); document.getElementById('overlay').classList.toggle('open',o); }
 
-        // ========== Frame Controls ==========
-        function addFrame() {
-            if (isPlaying) return;
-            const newFrame = JSON.parse(JSON.stringify(frames[currentFrameIndex]));
-            frames.push(newFrame);
-            currentFrameIndex = frames.length - 1;
-            saveToHistory();
-            draw();
-            showToast('Frame added');
-        }
+        canvas.addEventListener('touchstart',e=>{onDblTap(e);onStart(e);},{passive:false});
+        canvas.addEventListener('touchmove',onMove,{passive:false});
+        canvas.addEventListener('touchend',onEnd,{passive:false});
+        canvas.addEventListener('mousedown',e=>{onDblTap(e);onStart(e);});
+        canvas.addEventListener('mousemove',onMove);
+        canvas.addEventListener('mouseup',onEnd);
+        canvas.addEventListener('mouseleave',onEnd);
 
-        function deleteFrame() {
-            if (isPlaying || frames.length <= 1) return;
-            if (confirm('Delete this frame?')) {
-                frames.splice(currentFrameIndex, 1);
-                if (currentFrameIndex >= frames.length) currentFrameIndex = frames.length - 1;
-                saveToHistory();
-                draw();
-                showToast('Frame deleted');
-            }
-        }
+        document.querySelectorAll('.tool-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tool-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');tool=b.dataset.tool;}));
+        document.querySelectorAll('.color-option').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.color-option').forEach(x=>x.classList.remove('active'));b.classList.add('active');penColor=b.dataset.color;}));
+        document.getElementById('menuBtn').addEventListener('click',()=>togglePanel(true));
+        document.getElementById('closePanel').addEventListener('click',()=>togglePanel(false));
+        document.getElementById('overlay').addEventListener('click',()=>togglePanel(false));
+        document.getElementById('lineWidth').addEventListener('input',e=>{penWidth=parseInt(e.target.value);document.getElementById('lineWidthValue').textContent=penWidth+'px';});
+        document.getElementById('undoBtn').addEventListener('click',undo);
+        document.getElementById('redoBtn').addEventListener('click',redo);
+        document.getElementById('prevFrame').addEventListener('click',prevFrame);
+        document.getElementById('nextFrame').addEventListener('click',nextFrame);
+        document.getElementById('addFrame').addEventListener('click',addFrame);
+        document.getElementById('delFrame').addEventListener('click',delFrame);
+        document.getElementById('playBtn').addEventListener('click',()=>{playing?stopPlay():startPlay();});
+        document.getElementById('speedSlider').addEventListener('input',e=>{playSpeed=parseInt(e.target.value);document.getElementById('speedValue').textContent=(playSpeed/1000).toFixed(1)+'s';if(playing){stopPlay();startPlay();}});
+        document.getElementById('frameToggle').addEventListener('click',function(){this.classList.toggle('on');document.getElementById('frameBar').classList.toggle('show',this.classList.contains('on'));});
+        document.getElementById('clearBtn').addEventListener('click',()=>{togglePanel(false);frames[frameIdx].drawings=[];saveHist();draw();toast('Cleared');});
+        document.getElementById('resetBtn').addEventListener('click',()=>{togglePanel(false);if(confirm('Reset all?')){stopPlay();init();history=[];historyIdx=-1;saveHist();draw();toast('Reset');}});
+        document.getElementById('saveBtn').addEventListener('click',()=>{togglePanel(false);document.getElementById('saveData').value=JSON.stringify(frames);document.getElementById('saveModal').classList.add('open');});
+        document.getElementById('closeSaveModal').addEventListener('click',()=>document.getElementById('saveModal').classList.remove('open'));
+        document.getElementById('copyBtn').addEventListener('click',()=>{navigator.clipboard.writeText(document.getElementById('saveData').value);document.getElementById('saveModal').classList.remove('open');toast('Copied!');});
+        document.getElementById('loadBtn').addEventListener('click',()=>{togglePanel(false);document.getElementById('loadModal').classList.add('open');});
+        document.getElementById('closeLoadModal').addEventListener('click',()=>document.getElementById('loadModal').classList.remove('open'));
+        document.getElementById('loadDataBtn').addEventListener('click',()=>{try{stopPlay();frames=JSON.parse(document.getElementById('loadData').value);frameIdx=0;history=[];historyIdx=-1;saveHist();draw();document.getElementById('loadModal').classList.remove('open');document.getElementById('loadData').value='';toast('Loaded!');}catch(e){toast('Invalid data');}});
+        document.getElementById('exportBtn').addEventListener('click',()=>{togglePanel(false);const a=document.createElement('a');a.download=`urban-korfball-${Date.now()}.png`;a.href=canvas.toDataURL();a.click();toast('Saved!');});
 
-        function prevFrame() {
-            if (currentFrameIndex > 0) { currentFrameIndex--; draw(); }
-        }
-
-        function nextFrame() {
-            if (currentFrameIndex < frames.length - 1) { currentFrameIndex++; draw(); }
-        }
-
-        // ========== Playback ==========
-        function startPlayback() {
-            if (isPlaying || frames.length <= 1) return;
-            isPlaying = true;
-            togglePanel(false);
-            document.getElementById('playBtn').innerHTML = '<span class="icon">⏸️</span> Stop';
-            if (currentFrameIndex >= frames.length - 1) currentFrameIndex = 0;
-
-            playbackInterval = setInterval(() => {
-                currentFrameIndex++;
-                if (currentFrameIndex >= frames.length) currentFrameIndex = 0;
-                draw();
-            }, playbackSpeed);
-        }
-
-        function stopPlayback() {
-            isPlaying = false;
-            if (playbackInterval) { clearInterval(playbackInterval); playbackInterval = null; }
-            document.getElementById('playBtn').innerHTML = '<span class="icon">▶️</span> Play Animation';
-        }
-
-        // ========== UI Helpers ==========
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
-        }
-
-        function togglePanel(open) {
-            document.getElementById('sidePanel').classList.toggle('open', open);
-            document.getElementById('overlay').classList.toggle('open', open);
-        }
-
-        function openModal(id) { document.getElementById(id).classList.add('open'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-        // ========== Event Listeners ==========
-        canvas.addEventListener('touchstart', (e) => { handleDoubleTap(e); handleStart(e); }, { passive: false });
-        canvas.addEventListener('touchmove', handleMove, { passive: false });
-        canvas.addEventListener('touchend', handleEnd, { passive: false });
-        canvas.addEventListener('mousedown', (e) => { handleDoubleTap(e); handleStart(e); });
-        canvas.addEventListener('mousemove', handleMove);
-        canvas.addEventListener('mouseup', handleEnd);
-        canvas.addEventListener('mouseleave', handleEnd);
-        canvas.addEventListener('dblclick', (e) => {
-            if (isPlaying) return;
-            const pos = getPos(e);
-            for (const player of frames[currentFrameIndex].players) {
-                if (isInPlayer(pos, player)) {
-                    const newNum = prompt('Enter player number:', player.number);
-                    if (newNum !== null && newNum.trim()) { player.number = newNum.trim(); saveToHistory(); draw(); }
-                    return;
-                }
-            }
-        });
-
-        // Tool buttons
-        document.querySelectorAll('.tool-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentTool = btn.dataset.tool;
-                canvas.style.cursor = currentTool === 'select' ? 'default' : currentTool === 'eraser' ? 'not-allowed' : 'crosshair';
-            });
-        });
-
-        // Color buttons
-        document.querySelectorAll('.color-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentColor = btn.dataset.color;
-            });
-        });
-
-        // Menu & Panel
-        document.getElementById('menuBtn').addEventListener('click', () => togglePanel(true));
-        document.getElementById('closePanel').addEventListener('click', () => togglePanel(false));
-        document.getElementById('overlay').addEventListener('click', () => togglePanel(false));
-
-        // Sliders
-        document.getElementById('lineWidth').addEventListener('input', (e) => {
-            currentLineWidth = parseInt(e.target.value);
-            document.getElementById('lineWidthValue').textContent = currentLineWidth + 'px';
-        });
-        document.getElementById('playbackSpeed').addEventListener('input', (e) => {
-            playbackSpeed = parseInt(e.target.value);
-            document.getElementById('speedValue').textContent = (1000 / playbackSpeed).toFixed(1) + 'x';
-            if (isPlaying) { stopPlayback(); startPlayback(); }
-        });
-
-        // History & Frame buttons
-        document.getElementById('undoBtn').addEventListener('click', undo);
-        document.getElementById('redoBtn').addEventListener('click', redo);
-        document.getElementById('prevFrame').addEventListener('click', prevFrame);
-        document.getElementById('nextFrame').addEventListener('click', nextFrame);
-        document.getElementById('addFrame').addEventListener('click', addFrame);
-        document.getElementById('delFrame').addEventListener('click', deleteFrame);
-        document.getElementById('playBtn').addEventListener('click', () => { isPlaying ? stopPlayback() : startPlayback(); });
-
-        // Actions
-        document.getElementById('clearBtn').addEventListener('click', () => {
-            if (isPlaying) return;
-            togglePanel(false);
-            if (confirm('Clear all drawings?')) { frames[currentFrameIndex].drawings = []; saveToHistory(); draw(); showToast('Cleared'); }
-        });
-        document.getElementById('resetBtn').addEventListener('click', () => {
-            if (isPlaying) return;
-            togglePanel(false);
-            if (confirm('Reset everything?')) { stopPlayback(); frames = [createNewFrame()]; currentFrameIndex = 0; history = []; historyIndex = -1; draw(); showToast('Reset'); }
-        });
-
-        // Save/Load/Export
-        document.getElementById('saveBtn').addEventListener('click', () => {
-            togglePanel(false);
-            document.getElementById('saveData').value = JSON.stringify(frames, null, 2);
-            openModal('saveModal');
-        });
-        document.getElementById('closeSaveModal').addEventListener('click', () => closeModal('saveModal'));
-        document.getElementById('copyBtn').addEventListener('click', () => {
-            document.getElementById('saveData').select();
-            document.execCommand('copy');
-            showToast('Copied!');
-            closeModal('saveModal');
-        });
-        document.getElementById('loadBtn').addEventListener('click', () => { togglePanel(false); openModal('loadModal'); });
-        document.getElementById('closeLoadModal').addEventListener('click', () => closeModal('loadModal'));
-        document.getElementById('loadDataBtn').addEventListener('click', () => {
-            try {
-                stopPlayback();
-                frames = JSON.parse(document.getElementById('loadData').value);
-                currentFrameIndex = 0; history = []; historyIndex = -1; draw();
-                closeModal('loadModal'); document.getElementById('loadData').value = '';
-                showToast('Loaded!');
-            } catch (e) { showToast('Invalid data'); }
-        });
-        document.getElementById('exportBtn').addEventListener('click', () => {
-            togglePanel(false);
-            const link = document.createElement('a');
-            link.download = `urban-korfball-frame${currentFrameIndex + 1}-${Date.now()}.png`;
-            link.href = canvas.toDataURL();
-            link.click();
-            showToast('Exported!');
-        });
-
-        // Initialize
-        window.addEventListener('resize', resizeCanvas);
-        saveToHistory();
-        resizeCanvas();
+        window.addEventListener('resize',resize);
+        init(); saveHist(); resize();
     </script>
 </body>
 </html>
